@@ -2,11 +2,12 @@ from ruia import Request, Spider, AttrField, TextField, Item
 from ruia import Middleware
 from . import top_config
 from .db import data
+import traceback
+import sys
 
 
 def clean_time(time_txt: str):
-    time_txt = time_txt.rstrip('-')
-    time_txt = time_txt.rstrip(' ')
+    time_txt = time_txt.replace('发布时间：', '')
     return time_txt
 
 
@@ -16,7 +17,7 @@ middleware = Middleware()
 
 
 @middleware.request
-async def print_on_request(request):
+async def print_on_request(self, request):
     ua = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36'
     request.headers.update({'User-Agent': ua})
 
@@ -58,18 +59,35 @@ class FishSpider(Spider):
     async def process_item(self, item):
         try:
             date = clean_time(item.date)
-            if date >= min_time:
-                time_ok = True
-                data.append({
-                    'url': 'http://www.cast.org.cn' + item.url,
-                    'title': item.title,
-                    'date': date,
-                })
-            else:
-                time_ok = False
-            print('{}\t{}\t{}'.format(item.title, item.date, time_ok))
+            url = item.url
+            if url not in data.url_set:
+                if date >= min_time:
+                    time_ok = True
+                    data.append({
+                        'origin': '教育部',
+                        'date': date,
+                        'title': item.title,
+                        'url': url,
+                    })
+                else:
+                    time_ok = False
+                print('{}\t{}\t{}'.format(item.title, item.date, time_ok))
         except Exception as e:
             self.logger.exception(e)
+
+    async def _run_request_middleware(self, request: Request):
+        if self.middleware.request_middleware:
+            for middleware in self.middleware.request_middleware:
+                try:
+                    await middleware(self, request)
+                # except TypeError:
+                #     self.logger.error(
+                #         f"<Middleware {middleware.__name__}: must be a coroutine function"
+                #     )
+                except Exception as e:
+                    error = '\n'.join(traceback.format_exception(*sys.exc_info()))
+                    print(error)
+                    print(self._run_request_middleware)
 
 
 def test_spider():

@@ -6,6 +6,7 @@ from pkg import s2中华人民共和国教育部
 
 
 
-s1中国科学技术协会.FishSpider.start() #middleware=s1中国科学技术协会.middleware)
+# s1中国科学技术协会.FishSpider.start()
 # s2中华人民共和国教育部.FishSpider.start(middleware=s2中华人民共和国教育部.middleware)
-data.save()
+# data.save()
+

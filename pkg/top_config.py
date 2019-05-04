@@ -1,5 +1,5 @@
-# is_test = True
-is_test = False
+is_test = True
+# is_test = False
 
 print('测试模式：', is_test)
 

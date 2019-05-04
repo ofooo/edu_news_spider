@@ -13,14 +13,6 @@ def clean_time(time_txt: str):
 
 min_time = '{}年{:0>2d}月{:0>2d}日'.format(top_config.min_year, top_config.min_month, top_config.min_day)
 
-middleware = Middleware()
-
-
-@middleware.request
-async def print_on_request(request):
-    ua = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36'
-    request.headers.update({'User-Agent': ua})
-
 
 class FishItem(Item):
     target_item = TextField(css_select='div.jsearch-result-box')
@@ -57,16 +49,19 @@ class FishSpider(Spider):
     async def process_item(self, item):
         try:
             date = clean_time(item.date)
-            if date >= min_time:
-                time_ok = True
-                data.append({
-                    'url': 'http://www.cast.org.cn' + item.url,
-                    'title': item.title,
-                    'date': date,
-                })
-            else:
-                time_ok = False
-            print('{}\t{}\t{}'.format(item.title, item.date, time_ok))
+            url = 'http://www.cast.org.cn' + item.url
+            if url not in data.url_set:
+                if date >= min_time:
+                    time_ok = True
+                    data.append({
+                        'origin': '科学技术协会',
+                        'date': date,
+                        'title': item.title,
+                        'url': url,
+                    })
+                else:
+                    time_ok = False
+                print('{}\t{}\t{}'.format(item.title, item.date, time_ok))
         except Exception as e:
             self.logger.exception(e)
 
