@@ -4,14 +4,8 @@ from ruia import Middleware
 from . import top_config
 from .db import data
 
-
-def clean_time(time_txt: str):
-    time_txt = time_txt.rstrip('-')
-    time_txt = time_txt.rstrip(' ')
-    return time_txt
-
-
-min_time = '{}年{:0>2d}月{:0>2d}日'.format(top_config.min_year, top_config.min_month, top_config.min_day)
+# min_time = '{}年{:0>2d}月{:0>2d}日'.format(top_config.min_year, top_config.min_month, top_config.min_day)
+min_time = '{}-{:0>2d}-{:0>2d}'.format(top_config.min_year, top_config.min_month, top_config.min_day)
 
 
 class FishItem(Item):
@@ -19,6 +13,17 @@ class FishItem(Item):
     title = TextField(css_select='div.jsearch-result-title')
     date = TextField(css_select='span.jsearch-result-date')
     url = AttrField(css_select='div.jsearch-result-title a', attr='href')
+
+    async def clean_date(self, value):
+        date = value.rstrip('-')
+        date = date.rstrip(' ')
+        date = date.rstrip('日')
+        date = date.replace('年', '-').replace('月', '-')
+        return date
+
+    async def clean_url(self, value):
+        url = 'http://www.cast.org.cn' + value
+        return url
 
 
 class FishSpider(Spider):
@@ -48,16 +53,14 @@ class FishSpider(Spider):
 
     async def process_item(self, item):
         try:
-            date = clean_time(item.date)
-            url = 'http://www.cast.org.cn' + item.url
-            if url not in data.url_set:
-                if date >= min_time:
+            if item.url not in data.url_set:
+                if item.date >= min_time:
                     time_ok = True
                     data.append({
                         'origin': '科学技术协会',
-                        'date': date,
+                        'date': item.date,
                         'title': item.title,
-                        'url': url,
+                        'url': item.url,
                     })
                 else:
                     time_ok = False

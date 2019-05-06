@@ -5,13 +5,7 @@ from .db import data
 import traceback
 import sys
 
-
-def clean_time(time_txt: str):
-    time_txt = time_txt.replace('发布时间：', '')
-    return time_txt
-
-
-min_time = '{}年{:0>2d}月{:0>2d}日'.format(top_config.min_year, top_config.min_month, top_config.min_day)
+min_time = '{}-{:0>2d}-{:0>2d}'.format(top_config.min_year, top_config.min_month, top_config.min_day)
 
 middleware = Middleware()
 
@@ -27,6 +21,10 @@ class FishItem(Item):
     title = TextField(css_select='h2 a')
     date = TextField(css_select='dd.search_laiyuan')
     url = AttrField(css_select='h2 a', attr='href')
+
+    async def clean_date(self, value):
+        date = value.replace('发布时间：', '')
+        return date
 
 
 class FishSpider(Spider):
@@ -58,16 +56,14 @@ class FishSpider(Spider):
 
     async def process_item(self, item):
         try:
-            date = clean_time(item.date)
-            url = item.url
-            if url not in data.url_set:
-                if date >= min_time:
+            if item.url not in data.url_set:
+                if item.date >= min_time:
                     time_ok = True
                     data.append({
                         'origin': '教育部',
-                        'date': date,
+                        'date': item.date,
                         'title': item.title,
-                        'url': url,
+                        'url': item.url,
                     })
                 else:
                     time_ok = False
