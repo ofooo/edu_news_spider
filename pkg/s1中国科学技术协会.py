@@ -33,10 +33,16 @@ class FishSpider(Spider):
         number = 1000
     config = {'number': 8}
     start_urls = []
-    for word in top_config.words:
-        start_urls.append('http://www.cast.org.cn/jrobot/search.do?webid=1&pg={number}&p=&q={word}'.format(
-            number=number, word=word
-        ))
+    # 每个关键词搜索一次（效率低）
+    # for word in top_config.words:
+    #     start_urls.append('http://www.cast.org.cn/jrobot/search.do?webid=1&pg={number}&p=&q={word}'.format(
+    #         number=number, word=word
+    #     ))
+    # 所有关键词用空格连接，只搜索一次（效率高）
+    word = ' '.join(top_config.words)
+    start_urls.append('http://www.cast.org.cn/jrobot/search.do?webid=1&pg={number}&p=&q={word}'.format(
+        number=number, word=word
+    ))
     concurrency = 3
 
     async def parse(self, response):
