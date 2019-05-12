@@ -34,7 +34,6 @@ class FishSpider(Spider):
         page_size = 7
     else:
         page_size = 1000
-    config = {'number': 8}
     start_urls = []
     word = ' '.join(top_config.words)
     start_urls.append('http://www.miit.gov.cn/search/search')

@@ -31,12 +31,12 @@ class FishSpider(Spider):
     if top_config.is_test:
         page_max = 1
     else:
-        page_max = 10
+        page_max = 30
     start_urls = []
     for word in top_config.words:
         for page in range(1, page_max + 1):
             start_urls.append(
-                'http://www.moe.gov.cn/was5/web/search?channelid=224838&searchword={word}&page={page}'.format(
+                'http://znjs.most.gov.cn/wasdemo/search?page={page}&channelid=44374&searchword={word}&sortfield=-DOCRELTIME&prepage=20'.format(
                     word=word, page=page
                 ))
     concurrency = 2

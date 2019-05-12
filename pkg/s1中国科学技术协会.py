@@ -31,7 +31,6 @@ class FishSpider(Spider):
         number = 6
     else:
         number = 1000
-    config = {'number': 8}
     start_urls = []
     # 每个关键词搜索一次（效率低）
     # for word in top_config.words:
@@ -43,7 +42,7 @@ class FishSpider(Spider):
     start_urls.append('http://www.cast.org.cn/jrobot/search.do?webid=1&pg={number}&p=&q={word}'.format(
         number=number, word=word
     ))
-    concurrency = 3
+    concurrency = 2
 
     async def parse(self, response):
         for index, url in enumerate(self.start_urls):
