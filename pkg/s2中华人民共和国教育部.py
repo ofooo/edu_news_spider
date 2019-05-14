@@ -28,6 +28,10 @@ class FishItem(Item):
 
 
 class FishSpider(Spider):
+    request_config = top_config.request_config
+    worker_numbers = top_config.worker_numbers
+    concurrency = top_config.concurrency
+
     if top_config.is_test:
         page_max = 1
     else:
@@ -39,7 +43,6 @@ class FishSpider(Spider):
                 'http://www.moe.gov.cn/was5/web/search?channelid=224838&searchword={word}&page={page}'.format(
                     word=word, page=page
                 ))
-    concurrency = 2
 
     async def parse(self, response):
         for index, url in enumerate(self.start_urls):
@@ -87,7 +90,6 @@ class FishSpider(Spider):
 
 def test_spider():
     FishSpider.start(middleware=middleware)
-    data.save()
 
 
 if __name__ == '__main__':

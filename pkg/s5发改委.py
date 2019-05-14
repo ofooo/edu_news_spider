@@ -17,15 +17,14 @@ async def print_on_request(self, request):
 
 
 class FishItem(Item):
-    target_item = TextField(css_select='#info ')
-    title = TextField(css_select='h2 a')
-    date = TextField(css_select='dd.search_laiyuan')
-    url = AttrField(css_select='h2 a', attr='href')
+    target_item = TextField(css_select='td [width="530"]')
+    title = TextField(css_select='a')
+    date = TextField(css_select='td')
+    url = AttrField(css_select='a', attr='href')
 
     async def clean_date(self, value):
-        date = value.split('(')[1]
-        date = date.rstrip(')')
-        print('date =', date)
+        date = value[-10:]
+        date = date.replace('.', '-')
         return date
 
 
@@ -35,29 +34,21 @@ class FishSpider(Spider):
     concurrency = top_config.concurrency
 
     if top_config.is_test:
-        page_size = 7
+        page_max = 1
     else:
-        page_size = 1000
+        page_max = 2
     start_urls = []
-    word = ' '.join(top_config.words)
-    start_urls.append('http://www.miit.gov.cn/search/search')
+    for word in top_config.words:
+        for page in range(1, page_max + 1):
+            start_urls.append(
+                'http://znjs.most.gov.cn/wasdemo/search?page={page}&channelid=44374&searchword={word}&sortfield=-DOCRELTIME&prepage=20'.format(
+                    word=word, page=page
+                ))
 
-    body = {
-        'urls':'http://www.miit.gov.cn/',
-        'sortKey':'showTime',
-        'sortFlag':-1,
-        'fullText':word,
-        'sortType':1,
-        'indexDB':'css',
-        'pageSize':page_size,
-        'pageNow':1,
-    }
     async def parse(self, response):
         for index, url in enumerate(self.start_urls):
             yield Request(
                 url,
-                method='POST',
-                data=self.body,
                 callback=self.parse_item,
                 metadata={'index': index}
             )
@@ -72,7 +63,7 @@ class FishSpider(Spider):
                 if item.date >= min_time:
                     time_ok = True
                     data.append({
-                        'origin': '工信部',
+                        'origin': '科学技术部',
                         'date': item.date,
                         'title': item.title,
                         'url': item.url,

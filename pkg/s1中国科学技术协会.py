@@ -27,6 +27,10 @@ class FishItem(Item):
 
 
 class FishSpider(Spider):
+    request_config = top_config.request_config
+    worker_numbers = top_config.worker_numbers
+    concurrency = top_config.concurrency
+
     if top_config.is_test:
         number = 6
     else:
@@ -42,7 +46,6 @@ class FishSpider(Spider):
     start_urls.append('http://www.cast.org.cn/jrobot/search.do?webid=1&pg={number}&p=&q={word}'.format(
         number=number, word=word
     ))
-    concurrency = 2
 
     async def parse(self, response):
         for index, url in enumerate(self.start_urls):
@@ -76,7 +79,6 @@ class FishSpider(Spider):
 
 def test_spider():
     FishSpider.start()
-    data.save()
 
 
 if __name__ == '__main__':

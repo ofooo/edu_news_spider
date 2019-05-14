@@ -17,21 +17,26 @@ async def print_on_request(self, request):
 
 
 class FishItem(Item):
-    target_item = TextField(css_select='div.m_search_list dl')
-    title = TextField(css_select='h2 a')
-    date = TextField(css_select='dd.search_laiyuan')
-    url = AttrField(css_select='h2 a', attr='href')
+    target_item = TextField(css_select='td [width="530"]')
+    title = TextField(css_select='a')
+    date = TextField(css_select='td')
+    url = AttrField(css_select='a', attr='href')
 
     async def clean_date(self, value):
-        date = value.replace('发布时间：', '')
+        date = value[-10:]
+        date = date.replace('.', '-')
         return date
 
 
 class FishSpider(Spider):
+    request_config = top_config.request_config
+    worker_numbers = top_config.worker_numbers
+    concurrency = top_config.concurrency
+
     if top_config.is_test:
         page_max = 1
     else:
-        page_max = 30
+        page_max = 2
     start_urls = []
     for word in top_config.words:
         for page in range(1, page_max + 1):
@@ -39,7 +44,9 @@ class FishSpider(Spider):
                 'http://znjs.most.gov.cn/wasdemo/search?page={page}&channelid=44374&searchword={word}&sortfield=-DOCRELTIME&prepage=20'.format(
                     word=word, page=page
                 ))
-    concurrency = 2
+    print('+'*100)
+    for t in start_urls:
+        print(t)
 
     async def parse(self, response):
         for index, url in enumerate(self.start_urls):
@@ -59,7 +66,7 @@ class FishSpider(Spider):
                 if item.date >= min_time:
                     time_ok = True
                     data.append({
-                        'origin': '教育部',
+                        'origin': '科学技术部',
                         'date': item.date,
                         'title': item.title,
                         'url': item.url,
@@ -87,7 +94,6 @@ class FishSpider(Spider):
 
 def test_spider():
     FishSpider.start(middleware=middleware)
-    data.save()
 
 
 if __name__ == '__main__':

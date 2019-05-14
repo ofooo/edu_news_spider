@@ -96,7 +96,10 @@ class PandasDb:
         self.filepath = filepath
         if os.path.isfile(filepath):
             self.data = pd.read_csv(filepath, header=0)
-            self.url_set = set(self.data['url'])
+            if self.data.size > 0:
+                self.url_set = set(self.data['url'])
+            else:
+                self.data = pd.DataFrame()
         else:
             self.data = pd.DataFrame()
         print('读取数据数量 =', len(self.url_set))
@@ -108,6 +111,7 @@ class PandasDb:
         if url not in self.url_set:
             self.url_set.add(url)
             self.data = self.data.append(line, ignore_index=True)
+            self.save()
 
     def save(self):
         self.data.to_csv(self.filepath)
